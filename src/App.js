@@ -6,81 +6,95 @@ import MovieListHeading from './components/MovieListHeading';
 import SearchBox from './components/SearchBox';
 import AddFavourites from './components/AddFavourites';
 import RemoveFavourites from './components/RemoveFavourites';
+import Navbar from './components/Navbar'; // Importer le composant Navbar
 
 const App = () => {
-	const [movies, setMovies] = useState([]);
-	const [favourites, setFavourites] = useState([]);
-	const [searchValue, setSearchValue] = useState('');
+    const [movies, setMovies] = useState([]);
+    const [favourites, setFavourites] = useState([]);
+    const [searchValue, setSearchValue] = useState('');
 
-	const getMovieRequest = async (searchValue) => {
-		const url = `http://www.omdbapi.com/?s=${searchValue}&apikey=aeb2b829`;
+    const getMovieRequest = async (searchValue) => {
+        const url = `http://www.omdbapi.com/?s=${searchValue}&apikey=aeb2b829`;
 
-		const response = await fetch(url);
-		const responseJson = await response.json();
+        const response = await fetch(url);
+        const responseJson = await response.json();
 
-		if (responseJson.Search) {
-			setMovies(responseJson.Search);
-		}
-	};
+        if (responseJson.Search) {
+            setMovies(responseJson.Search.slice(0, 10));
+        } else {
+            setMovies([]);
+        }
+    };
 
-	useEffect(() => {
-		getMovieRequest(searchValue);
-	}, [searchValue]);
+    useEffect(() => {
+        getMovieRequest('Avengers');
+    }, []);
 
-	useEffect(() => {
-		const movieFavourites = JSON.parse(
-			localStorage.getItem('react-movie-app-favourites')
-		);
+    useEffect(() => {
+        if (searchValue) {
+            getMovieRequest(searchValue);
+        } else {
+            getMovieRequest('Avengers');
+        }
+    }, [searchValue]);
 
-		if (movieFavourites) {
-			setFavourites(movieFavourites);
-		}
-	}, []);
+    useEffect(() => {
+        const movieFavourites = JSON.parse(
+            localStorage.getItem('react-movie-app-favourites')
+        );
 
-	const saveToLocalStorage = (items) => {
-		localStorage.setItem('react-movie-app-favourites', JSON.stringify(items));
-	};
+        if (movieFavourites) {
+            setFavourites(movieFavourites);
+        }
+    }, []);
 
-	const addFavouriteMovie = (movie) => {
-		const newFavouriteList = [...favourites, movie];
-		setFavourites(newFavouriteList);
-		saveToLocalStorage(newFavouriteList);
-	};
+    const saveToLocalStorage = (items) => {
+        localStorage.setItem('react-movie-app-favourites', JSON.stringify(items));
+    };
 
-	const removeFavouriteMovie = (movie) => {
-		const newFavouriteList = favourites.filter(
-			(favourite) => favourite.imdbID !== movie.imdbID
-		);
+    const addFavouriteMovie = (movie) => {
+        const newFavouriteList = [...favourites, movie];
+        setFavourites(newFavouriteList);
+        saveToLocalStorage(newFavouriteList);
+    };
 
-		setFavourites(newFavouriteList);
-		saveToLocalStorage(newFavouriteList);
-	};
+    const removeFavouriteMovie = (movie) => {
+        const newFavouriteList = favourites.filter(
+            (favourite) => favourite.imdbID !== movie.imdbID
+        );
 
-	return (
-		<div className='container-fluid movie-app'>
-			<div className='row d-flex align-items-center mt-4 mb-4'>
-				<MovieListHeading heading='Movies' />
-				<SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
-			</div>
-			<div className='row'>
-				<MovieList
-					movies={movies}
-					handleFavouritesClick={addFavouriteMovie}
-					favouriteComponent={AddFavourites}
-				/>
-			</div>
-			<div className='row d-flex align-items-center mt-4 mb-4'>
-				<MovieListHeading heading='Favourites' />
-			</div>
-			<div className='row'>
-				<MovieList
-					movies={favourites}
-					handleFavouritesClick={removeFavouriteMovie}
-					favouriteComponent={RemoveFavourites}
-				/>
-			</div>
-		</div>
-	);
+        setFavourites(newFavouriteList);
+        saveToLocalStorage(newFavouriteList);
+    };
+
+    return (
+        <div className='container-fluid movie-app'>
+            {/* Utiliser le composant Navbar ici */}
+            <Navbar />
+
+            <div className='row d-flex align-items-center mt-4 mb-4'>
+                <MovieListHeading heading='Films' />
+                <SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
+            </div>
+            <div className='row'>
+                <MovieList
+                    movies={movies}
+                    handleFavouritesClick={addFavouriteMovie}
+                    favouriteComponent={AddFavourites}
+                />
+            </div>
+            <div className='row d-flex align-items-center mt-4 mb-4'>
+                <MovieListHeading heading='Favoris' />
+            </div>
+            <div className='row'>
+                <MovieList
+                    movies={favourites}
+                    handleFavouritesClick={removeFavouriteMovie}
+                    favouriteComponent={RemoveFavourites}
+                />
+            </div>
+        </div>
+    );
 };
 
 export default App;
